@@ -1,65 +1,82 @@
-# 🚀 Mini ESP32 NAS (Cloud Storage)
+# Mini ESP32 NAS
 
-A full-featured, high-performance Network Attached Storage (NAS) and Cloud Storage solution built for the ESP32. This project transforms a simple ESP32 and an SD card into a powerful, web-based file management system with a modern "Glassmorphism" UI.
+A small ESP32-based network storage project that exposes an SD card through a web file manager. It supports browsing, uploads, downloads, simple file/folder operations, a recycle bin, basic text editing, and media previews.
 
-## ⚠️ Current Status
-> **Note:** The FTP server functionality is currently not working correctly. I am aware of this issue and will be fixing it in a future update. For now, please use the Web Interface for file management.
+## Features
 
-## ✨ Features
+### File System
 
-### 📁 File System
-- **Real-time Upload**: Asynchronous uploads with a live progress bar.
-- **File Management**: Create, Copy, Cut, Paste, and Delete files and folders.
-- **Recycle Bin**: Safety-first deletion system with **Restore** and **Empty Bin** capabilities (stored in `/.trash`).
-- **Web Editor**: Built-in editor for `.txt` and `.html` files.
-- **Search**: Instant, real-time file searching/filtering.
+- Async file uploads with progress feedback.
+- Create, copy, cut, paste, rename, delete, and restore files/folders.
+- Recycle bin stored in `/.trash`.
+- Built-in editor for `.txt` and `.html` files.
+- Client-side search/filtering.
 
-### 📸 Media & UI
-- **Modern Dark UI**: Professional "GitHub-inspired" dark theme.
-- **Image Previews**: Lazy-loaded thumbnails for `.jpg`, `.png`, and `.gif`.
-- **MP3 Player**: Stream and play music (`.mp3`, `.wav`) directly from the browser.
-- **Mobile Optimized**: Fully responsive UI for smartphones and tablets.
+### Media and UI
 
-### 🌐 Connectivity
-- **Dual WiFi Mode**: Supports both Station (STA) and Access Point (AP) modes.
-- **Web Server**: High-speed file browsing via `ESPAsyncWebServer`.
-- **Static IP**: Configurable static IP for easy network access.
+- Dark responsive web interface.
+- Image previews for `.jpg`, `.png`, and `.gif`.
+- Browser playback for common audio/video files.
+- **Enhanced Video Controls**: Added 10-second skip forward/backward buttons for better playback control.
+- Mobile-friendly layout.
 
-## 🛠️ Hardware Requirements
-- ESP32 Development Board.
-- MicroSD Card Module (SPI).
-- MicroSD Card (Formatted to FAT32).
+### Connectivity
 
-## 🔌 Pin Mapping (Default)
+- Station mode with static IP.
+- Access Point fallback mode.
+- Web server powered by `ESPAsyncWebServer`.
+
+## Hardware Requirements
+
+- ESP32 development board.
+- MicroSD card module using SPI.
+- FAT32-formatted microSD card.
+
+## Pin Mapping
+
 | ESP32 Pin | SD Module |
 |-----------|-----------|
 | GPIO 18   | SCK       |
 | GPIO 19   | MISO      |
 | GPIO 23   | MOSI      |
-| GPIO 4    | CS (SS)   |
+| GPIO 4    | CS / SS   |
 | 3.3V      | VCC       |
 | GND       | GND       |
 
-*Note: SPI pins may vary depending on your ESP32 board variant. Standard VSPI pins are usually 18, 19, 23.*
+Standard VSPI pins are usually GPIO 18, 19, and 23, but check your ESP32 board variant.
 
-## 🚀 Installation
+## Installation
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/Tauhid3K/Mini_esp32_nas.git
-    ```
-2.  **Install Libraries**: Ensure you have the following libraries installed in your Arduino IDE:
-    - `WiFi`
-    - `ESPAsyncWebServer`
-    - `AsyncTCP`
-    - `SPI`
-    - `SD`
-    - `ESP32FtpServer`
-3.  **Configure WiFi**: Edit the `ssid` and `password` variables in `Mini_nas.ino`.
-4.  **Upload**: Select your ESP32 board and click upload.
-5.  **Access**: Open your browser and navigate to the IP address printed in the Serial Monitor (Default Static: `192.168.110.200`).
-    - **Username:** `admin`
-    - **Password:** `admin`
+1. Clone the repository:
 
-## 🛡️ License
+   ```bash
+   git clone https://github.com/Tauhid3K/Mini_esp32_nas.git
+   ```
+
+2. Install the Arduino libraries:
+
+   - `WiFi`
+   - `ESPAsyncWebServer`
+   - `AsyncTCP`
+   - `SPI`
+   - `SD`
+
+3. Create your private config:
+
+   Copy `config.example.h` to `config.h`, then update the WiFi, web login, and AP password.
+
+4. Upload `Mini_nas.ino` to your ESP32.
+
+5. Open the IP address printed in Serial Monitor.
+
+   Default static IP in the sketch: `192.168.10.200`
+
+## Security Notes
+
+- Do not keep the default passwords in real use.
+- `config.h` is ignored by Git so private credentials are not committed.
+- Keep this device on a trusted local network unless you add stronger authentication and HTTPS.
+
+## License
+
 This project is open-source and available under the MIT License.
