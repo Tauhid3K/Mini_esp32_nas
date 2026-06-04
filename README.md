@@ -1,39 +1,34 @@
-# Mini ESP32 NAS
+# ESP NAS
 
-A small ESP32-based network storage project that exposes an SD card through a web file manager. It supports browsing, uploads, downloads, simple file/folder operations, a recycle bin, basic text editing, and media previews.
+A powerful, minimal ESP32-based network storage project that exposes an SD card through a modern web file manager. It supports advanced folder management, recursive uploads, persistent media playback, and robust file operations.
 
 ## Features
 
-### File System
+### 📁 Advanced File System
+- **Recursive Folder Uploads:** Upload entire directory structures directly from your browser with progress tracking.
+- **Smart File Operations:** Create, Copy, Cut, Paste, Rename, and Restore files/folders with automatic fallback logic.
+- **Robust Deletion:** Improved recursive deletion with "Rewind and Retry" to handle stubborn SD card folders.
+- **Recycle Bin:** Deleted items are moved to `/.trash` with timestamped unique names for easy recovery.
+- **Text Editor:** Create and edit common text formats (`.txt`, `.md`, `.json`, etc.) directly in the web UI.
 
-- Async file uploads with progress feedback.
-- Create, copy, cut, paste, rename, delete, and restore files/folders.
-- Recycle bin stored in `/.trash`.
-- Built-in editor for `.txt` and `.html` files.
-- Client-side search/filtering.
+### 🎥 Media and UI
+- **Persistent Audio Player:** Music keeps playing seamlessly even as you navigate through different folders (powered by `localStorage`).
+- **Enhanced Video Player:** Custom controls with 10-second skip, mute/unmute, and state-aware play/pause icons.
+- **Inline PDF Viewing:** PDFs open directly in your browser's native viewer in a new tab.
+- **Themed UI:** A modern, dark responsive interface with theme-synced minimalist circular controls.
+- **Real-time Progress:** Visual progress bars with percentage indicators and "Cancel" support for all uploads.
 
-### Media and UI
-
-- Dark responsive web interface.
-- Image previews for `.jpg`, `.png`, and `.gif`.
-- Browser playback for common audio/video files.
-- **Enhanced Video Controls**: Added 10-second skip forward/backward buttons for better playback control.
-- Mobile-friendly layout.
-
-### Connectivity
-
-- Station mode with static IP.
-- Access Point fallback mode.
-- Web server powered by `ESPAsyncWebServer`.
+### 📶 Connectivity
+- **Dual Mode:** Station mode with Static IP and automatic Access Point (AP) fallback.
+- **Dynamic Config:** Support for a `config.h` file for secure credential management.
+- **Optimized Server:** Powered by `ESPAsyncWebServer` with `Accept-Ranges` for smooth media seeking.
 
 ## Hardware Requirements
+- **ESP32** development board.
+- **MicroSD** card module (SPI).
+- **FAT32** formatted microSD card.
 
-- ESP32 development board.
-- MicroSD card module using SPI.
-- FAT32-formatted microSD card.
-
-## Pin Mapping
-
+## Pin Mapping (Standard VSPI)
 | ESP32 Pin | SD Module |
 |-----------|-----------|
 | GPIO 18   | SCK       |
@@ -43,40 +38,24 @@ A small ESP32-based network storage project that exposes an SD card through a we
 | 3.3V      | VCC       |
 | GND       | GND       |
 
-Standard VSPI pins are usually GPIO 18, 19, and 23, but check your ESP32 board variant.
-
 ## Installation
 
-1. Clone the repository:
-
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/Tauhid3K/Mini_esp32_nas.git
    ```
 
-2. Install the Arduino libraries:
+2. **Configure Credentials:**
+   Copy `config.example.h` to `config.h` and update your WiFi and login details. The project will automatically prioritize this file.
 
-   - `WiFi`
-   - `ESPAsyncWebServer`
-   - `AsyncTCP`
-   - `SPI`
-   - `SD`
+3. **Install Libraries:**
+   - `WiFi`, `ESPAsyncWebServer`, `AsyncTCP`, `SPI`, `SD`.
 
-3. Create your private config:
+4. **Upload:**
+   Open `Mini_nas.ino` in Arduino IDE and upload to your ESP32.
 
-   Copy `config.example.h` to `config.h`, then update the WiFi, web login, and AP password.
-
-4. Upload `Mini_nas.ino` to your ESP32.
-
-5. Open the IP address printed in Serial Monitor.
-
-   Default static IP in the sketch: `192.168.10.200`
-
-## Security Notes
-
-- Do not keep the default passwords in real use.
-- `config.h` is ignored by Git so private credentials are not committed.
-- Keep this device on a trusted local network unless you add stronger authentication and HTTPS.
+5. **Access:**
+   Open the IP address printed in the Serial Monitor (Default: `192.168.10.200`).
 
 ## License
-
 This project is open-source and available under the MIT License.
