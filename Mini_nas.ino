@@ -18,7 +18,7 @@
 #define WIFI_PASSWORD "l!ghtning6T"
 #endif
 #ifndef AP_SSID
-#define AP_SSID "ESP32-Cloud"
+#define AP_SSID "ESP32-NAS"
 #endif
 #ifndef AP_PASSWORD
 #define AP_PASSWORD "12345678"
@@ -435,7 +435,7 @@ void deleteRecursive(String path) {
 String htmlHeader(String path) {
   bool inTrash = path.startsWith(TRASH_DIR);
   String html = R"rawliteral(
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><title>Cloud NAS</title>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><title>ESP NAS</title>
 <style>
 :root { --bg: #101418; --surface: #161c20; --card-bg: #1b2328; --header-bg: rgba(19, 25, 29, 0.94); --accent: #43c6b4; --accent-2: #f0b35a; --text: #eef3f0; --text-dim: #9aa9a6; --border: #2c393d; --danger: #ff6b6b; --success: #61d394; --shadow: 0 14px 34px rgba(0,0,0,0.32); }
 * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -495,14 +495,17 @@ input[type="text"]:focus { border-color: var(--accent); }
 .v-container video { width: 100%; display: block; background: #000; }
 .v-controls-panel { padding: 20px; background: #1c2128; border-top: 1px solid var(--border); }
 .v-progress-wrap { margin-bottom: 15px; }
-.v-bar-bg { width: 100%; height: 8px; background: #1a3d37; border-radius: 4px; cursor: pointer; position: relative; border: 1px solid rgba(67,198,180,0.1); }
-.v-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; position: relative; }
+.v-bar-bg { width: 100%; height: 8px; background: #080b0c; border-radius: 4px; cursor: pointer; position: relative; border: 1px solid rgba(255,255,255,0.05); }
+.v-bar-load { position: absolute; top: 0; left: 0; height: 100%; background: #1a3d37; border-radius: 4px; transition: 0.3s; }
+.v-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; position: relative; z-index: 2; }
 .v-bar-fill::after { content: ''; position: absolute; right: -6px; top: -5px; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
 .v-time-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim); font-family: monospace; margin-top: 10px; }
 .v-buttons-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 15px; }
 .circle-btn { width: 44px; height: 44px; border-radius: 50%; background: #202a2f; color: var(--accent); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 18px; }
 .circle-btn:active { transform: scale(0.9); opacity: 0.8; }
 .circle-btn b { display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.v-opt { padding: 8px 12px; font-size: 13px; color: var(--text); cursor: pointer; border-radius: 6px; transition: 0.15s; }
+.v-opt:hover { background: var(--accent); color: #000; }
 
 /* Global Audio Player */
 #globalPlayer { position: fixed; bottom: 0; left: 0; right: 0; background: #161b22; border-top: 1px solid #30363d; padding: 20px; z-index: 2000; border-radius: 24px 24px 0 0; display: none; box-shadow: 0 -8px 32px rgba(0,0,0,0.6); }
@@ -517,8 +520,9 @@ input[type="text"]:focus { border-color: var(--accent); }
 .p-btn b { color: var(--accent); }
 .p-play { font-size: 22px; }
 .p-progress-wrap { width: 100%; margin-bottom: 8px; }
-.p-progress { width: 100%; height: 6px; background: #1a3d37; border: 1px solid rgba(67,198,180,0.1); border-radius: 3px; position: relative; cursor: pointer; }
-.p-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; position: relative; }
+.p-progress { width: 100%; height: 6px; background: #080b0c; border: 1px solid rgba(255,255,255,0.05); border-radius: 3px; position: relative; cursor: pointer; }
+.p-load { position: absolute; top: 0; left: 0; height: 100%; background: #1a3d37; border-radius: 3px; transition: 0.3s; }
+.p-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; position: relative; z-index: 2; }
 .p-fill::after { content: ''; position: absolute; right: -6px; top: -5px; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
 .p-time { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); font-family: monospace; margin-top: 8px; }
 
@@ -530,7 +534,7 @@ input[type="text"]:focus { border-color: var(--accent); }
 </style>
 </head><body>
 <div class="header">
-  <div class="brand"><div class="brand-mark">N</div><span>Cloud NAS</span></div>
+  <div class="brand"><div class="brand-mark">N</div><span>ESP NAS</span></div>
   <div class="path-bar">Path: <span>%PATH%</span></div>
   <div class="action-bar">
     <a href="/?dir=/"><button>&#8962; Home</button></a>
@@ -756,6 +760,12 @@ input[type="text"]:focus { border-color: var(--accent); }
         }
         saveState();
       };
+      audio.onprogress = () => {
+        if (audio.duration && audio.buffered.length > 0) {
+          const loaded = (audio.buffered.end(audio.buffered.length - 1) / audio.duration * 100);
+          document.getElementById('pLoad').style.width = loaded + '%';
+        }
+      };
       audio.onended = () => nextTrack();
       audio.onplay = () => { document.getElementById('pPlayIcon').innerText = '||'; saveState(); };
       audio.onpause = () => { document.getElementById('pPlayIcon').innerText = '▶'; saveState(); };
@@ -791,6 +801,12 @@ input[type="text"]:focus { border-color: var(--accent); }
       overlay.classList.add('active'); 
       video.onplay = () => document.getElementById('vPlayIcon').innerText = '||';
       video.onpause = () => document.getElementById('vPlayIcon').innerText = '▶';
+      video.onprogress = () => {
+        if (video.duration && video.buffered.length > 0) {
+          const loaded = (video.buffered.end(video.buffered.length - 1) / video.duration * 100);
+          document.getElementById('vLoad').style.width = loaded + '%';
+        }
+      };
       video.play();
       video.ontimeupdate = () => {
         if(video.duration) {
@@ -800,7 +816,26 @@ input[type="text"]:focus { border-color: var(--accent); }
         }
       };
     }
-    function closeVideo() { document.getElementById('videoEl').pause(); document.getElementById('videoOverlay').classList.remove('active'); }
+    function toggleVSettings() {
+      const m = document.getElementById('vSettingsMenu');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function vSpeed(s) {
+      document.getElementById('videoEl').playbackRate = s;
+      toggleVSettings();
+    }
+    function vSubs(on) {
+      const v = document.getElementById('videoEl');
+      for (let i = 0; i < v.textTracks.length; i++) {
+        v.textTracks[i].mode = on ? 'showing' : 'hidden';
+      }
+      toggleVSettings();
+    }
+    function closeVideo() { 
+      document.getElementById('videoEl').pause(); 
+      document.getElementById('vSettingsMenu').style.display = 'none';
+      document.getElementById('videoOverlay').classList.remove('active'); 
+    }
     function vSeek(e) {
       const rect = document.getElementById('vSeekBase').getBoundingClientRect();
       const pct = (e.clientX - rect.left) / rect.width;
@@ -887,6 +922,7 @@ String htmlFooter() {
   </div>
   <div class="p-progress-wrap">
     <div class="p-progress" id="pSeekBase" onclick="seek(event)">
+      <div id="pLoad" class="p-load"></div>
       <div id="pFill" class="p-fill"></div>
     </div>
     <div class="p-time"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
@@ -901,6 +937,7 @@ String htmlFooter() {
     <div class="v-controls-panel">
       <div class="v-progress-wrap">
         <div class="v-bar-bg" id="vSeekBase" onclick="vSeek(event)">
+          <div id="vLoad" class="v-bar-load"></div>
           <div id="vFill" class="v-bar-fill"></div>
         </div>
         <div class="v-time-row"><span id="vCur">0:00</span><span id="vDur">0:00</span></div>
@@ -910,8 +947,20 @@ String htmlFooter() {
         <div class="circle-btn play-pause" onclick="vControl('pp')"><b id="vPlayIcon">||</b></div>
         <div class="circle-btn" onclick="vControl('ff')"><b>&#187;</b></div>
         <div class="circle-btn" onclick="vControl('vol')"><b id="vVolIcon">🔊</b></div>
+        <div class="circle-btn" onclick="toggleVSettings()"><b>⚙️</b></div>
         <div class="circle-btn" onclick="toggleVFS()"><b>&#9974;</b></div>
       </div>
+    </div>
+    <!-- Video Settings Menu -->
+    <div id="vSettingsMenu" style="display:none; position:absolute; bottom:160px; right:30px; background:var(--surface); border:1px solid var(--accent); border-radius:12px; padding:10px; z-index:3500; min-width:140px; box-shadow:var(--shadow);">
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid var(--border);">Playback Speed</div>
+      <div class="v-opt" onclick="vSpeed(0.5)">0.5x</div>
+      <div class="v-opt" onclick="vSpeed(1)">1.0x (Normal)</div>
+      <div class="v-opt" onclick="vSpeed(1.5)">1.5x</div>
+      <div class="v-opt" onclick="vSpeed(2)">2.0x</div>
+      <div style="font-size:12px; color:var(--text-dim); margin:8px 0 5px; padding-bottom:5px; border-bottom:1px solid var(--border);">Subtitles</div>
+      <div class="v-opt" onclick="vSubs(true)">On</div>
+      <div class="v-opt" onclick="vSubs(false)">Off</div>
     </div>
   </div>
 </div>
@@ -1294,7 +1343,7 @@ void handleFileRead(AsyncWebServerRequest *request) {
 void setup() {
   Serial.begin(115200); delay(1000);
   Serial.println(F("\n\n===================================="));
-  Serial.println(F("       CLOUD NAS INITIALIZING       "));
+  Serial.println(F("         ESP NAS INITIALIZING         "));
   Serial.println(F("====================================\n"));
 
   Serial.print(F("SD Card: "));
